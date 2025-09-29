@@ -1,4 +1,5 @@
-///|/ Copyright (c) Prusa Research 2022 - 2023 Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) Prusa Research 2022 - 2023 Enrico Turri @enricoturri1966, Tomáš Mészáros
+///@tamasmeszaros
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
@@ -14,10 +15,13 @@
 #include <vector>
 #include <string>
 #include <memory>
-
+#include <deque>
+#include <unordered_set>
 namespace Slic3r {
 
 class SLAPrint;
+class ModelObject;
+class SlicingProcessCompletedEvent;
 
 namespace GUI {
 
@@ -26,9 +30,15 @@ class GLCanvas3D;
 class GLGizmoSlaBase : public GLGizmoBase
 {
 public:
-    GLGizmoSlaBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, SLAPrintObjectStep min_step);
+    GLGizmoSlaBase(
+        GLCanvas3D &parent,
+        const std::string &icon_filename,
+        unsigned int sprite_id,
+        SLAPrintObjectStep min_step
+    );
 
     void reslice_until_step(SLAPrintObjectStep step, bool postpone_error_messages = false);
+    void reslice_until_step_multi(SLAPrintObjectStep step, bool postpone_error_messages = false);
 
 protected:
     virtual CommonGizmosDataID on_get_requirements() const override;
@@ -42,21 +52,21 @@ protected:
     bool is_input_enabled() const { return m_input_enabled; }
     int get_min_sla_print_object_step() const { return m_min_sla_print_object_step; }
 
-    bool unproject_on_mesh(const Vec2d& mouse_pos, std::pair<Vec3f, Vec3f>& pos_and_normal);
+    bool unproject_on_mesh(const Vec2d &mouse_pos, std::pair<Vec3f, Vec3f> &pos_and_normal);
 
     bool are_sla_supports_shown() const { return m_show_sla_supports; }
     void show_sla_supports(bool show) { m_show_sla_supports = show; }
 
     const GLVolumeCollection &volumes() const { return m_volumes; }
 
-    static bool selected_print_object_exists(const GLCanvas3D& canvas, const wxString& text);
+    static bool selected_print_object_exists(const GLCanvas3D &canvas, const wxString &text);
+    std::map<int, std::shared_ptr<SceneRaycasterItem>> m_volume_raycasters;
 
 private:
     GLVolumeCollection m_volumes;
-    bool m_input_enabled{ false };
-    bool m_show_sla_supports{ false };
-    int m_min_sla_print_object_step{ -1 };
-    std::vector<std::shared_ptr<SceneRaycasterItem>> m_volume_raycasters;
+    bool m_input_enabled{false};
+    bool m_show_sla_supports{false};
+    int m_min_sla_print_object_step{-1};
 };
 
 } // namespace GUI
